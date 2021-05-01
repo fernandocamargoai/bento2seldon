@@ -1,0 +1,72 @@
+# Poetry pyproject.toml: https://python-poetry.org/docs/pyproject/
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "bento2seldon"
+version = "0.1.0"
+description = "This project aims to combine the awesome capabilities of BentoML in packaging models with the powerful Seldon Core engine to deploy such models. It also features an optional cache using Redis that can also be used to make the feedback loop easier by using the request ID to get back the original request and response. For now, it was created for internal use and is in alpha state. But it will soon be prepared to be used by everyone."
+readme = "README.md"
+authors = [
+  "fernandocamargoai <fernando.camargo.ai@gmail.com>"
+]
+license = "Apache Software License 2.0"
+repository = "https://github.com/fernandocamargoai/bento2seldon"
+homepage = "https://github.com/fernandocamargoai/bento2seldon"
+
+# Keywords description https://python-poetry.org/docs/pyproject/#keywords
+keywords = ["machine learning", "deployment"]
+
+# Pypi classifiers: https://pypi.org/classifiers/
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+importlib_metadata = {version = "^1.6.0", python = "<3.8"}
+pydantic = "^1.0"
+BentoML = "^0.12"
+decorator = "^5.0"
+redis = { version = "^3.0", optional = true }
+
+[tool.poetry.dev-dependencies]
+darglint = "^1.5.8"
+isort = "^5.7.0"
+pyupgrade = "^2.7.4"
+black = "^20.8b1"
+mypy = "^0.790"
+bandit = "^1.7.0"
+safety = "^1.10.3"
+pytest = "^6.2.1"
+pylint = "^2.6.0"
+pydocstyle = "^5.1.1"
+pre-commit = "^2.9.3"
+
+[tool.black]
+# https://github.com/psf/black
+line-length = 80
+target-version = ["py37"]
+
+[tool.isort]
+# https://github.com/timothycrosley/isort/
+known_typing = "typing,types,typing_extensions,mypy,mypy_extensions"
+sections = "FUTURE,TYPING,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
+include_trailing_comma = true
+default_section = "FIRSTPARTY"
+multi_line_output = 3
+indent = 4
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 80
