@@ -41,7 +41,7 @@ R = TypeVar("R", bound=BaseModel)
 class SeldonMessage(GenericModel, Generic[R]):
     status: Optional[Status]
     meta: Meta = Field(default_factory=Meta)
-    jsonData: R = None
+    jsonData: Optional[R]
 
 
 class SeldonMessageRequest(SeldonMessage[R], Generic[R]):
@@ -52,7 +52,7 @@ S = TypeVar("S", bound=BaseModel)
 
 
 class Feedback(GenericModel, Generic[R, S]):
-    request: SeldonMessage[R] = None
-    response: SeldonMessage[S] = None
+    request: Optional[SeldonMessage[R]]
+    response: Optional[SeldonMessage[S]]
     reward: Optional[float]
-    truth: SeldonMessage[S] = None
+    truth: Optional[SeldonMessage[S]]
