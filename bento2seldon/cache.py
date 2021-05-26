@@ -51,10 +51,13 @@ class Cache(Generic[RT, RE]):
 
     def _request_to_key(self, request: RT) -> str:
         request_hash = sha256(request.json().encode("utf-8")).hexdigest()
-        return f"{self._name}:{DEPLOYMENT_ID}:{self._version}:{request_hash}"
+        return self._request_hash_to_key(request_hash)
+
+    def _request_hash_to_key(self, request_hash: str) -> str:
+        return f"{self._name}:{DEPLOYMENT_ID}:{self._version}:request:{request_hash}"
 
     def _wrap_puid(self, puid: str) -> str:
-        return f"{self._name}:{DEPLOYMENT_ID}:{self._version}:{puid}"
+        return f"{self._name}:{DEPLOYMENT_ID}:{self._version}:puid:{puid}"
 
     def should_cache(self, request: RT, response: RE, meta: Meta) -> bool:
         logger.debug(
@@ -187,3 +190,11 @@ class Cache(Generic[RT, RE]):
         else:
             logger.warning("Redis not available.")
         return None
+
+    def get_all(self) -> List[CacheValue]:
+        return [
+            CacheValue.parse_raw(value)
+            for value in self._redis.mget(
+                self._redis.keys(self._request_hash_to_key("*"))
+            )
+        ]
