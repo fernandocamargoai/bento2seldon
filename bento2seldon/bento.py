@@ -17,6 +17,7 @@ import logging
 
 from bento2seldon.adapter import SeldonJsonInput
 from bento2seldon.cache import Cache
+from bento2seldon.logging import LoggingContext
 from bento2seldon.model import Settings
 from bento2seldon.monitoring import Monitor
 from bento2seldon.seldon import (
@@ -53,16 +54,24 @@ logger = logging.getLogger(__name__)
 
 
 class ExceptionHandler:
-    def __init__(self, tasks: List[InferenceTask], response_type: Type[RE]):
+    def __init__(
+        self,
+        tasks: List[InferenceTask],
+        response_type: Type[RE],
+        logging_context: LoggingContext,
+    ):
         self._tasks = tasks
         self._response_type = response_type
+        self._logging_context = logging_context
 
     def __enter__(self):
         pass
 
     def __exit__(self, typ, value, traceback):
         if isinstance(value, Exception):
-            logger.exception("Unexpected error")
+            logger.exception(
+                "Unexpected error", extra=self._logging_context.with_status(500)
+            )
             error = SeldonMessage[self._response_type](
                 status=Status(
                     code=500, info=str(value), status=StatusFlag.FAILURE.value
@@ -90,6 +99,14 @@ class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
     def response_type(self) -> Type[RE]:
         pass
 
+    def get_logger_context(
+        self, endpoint: str = "predict", batch_size: int = None
+    ) -> LoggingContext:
+        context = LoggingContext(self).with_endpoint(endpoint)
+        if batch_size:
+            context = context.with_batch_size(batch_size)
+        return context
+
     @property
     def settings(self) -> Settings:
         if not hasattr(self, "_settings"):
@@ -107,15 +124,24 @@ class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
         raw_request: Union[Dict[str, Any], List[Dict[str, Any]]],
         task: InferenceTask,
         request_type: Type[I],
+        logging_context: LoggingContext,
     ) -> Optional[I]:
         try:
             input = parse_obj_as(request_type, raw_request)
             if isinstance(input, SeldonMessage):
-                logger.debug("Setting the puid from task_id: %s", task.task_id)
+                logger.debug(
+                    "Setting the puid from task_id: %s",
+                    task.task_id,
+                    extra=logging_context,
+                )
                 input.meta.puid = task.task_id
             return input
         except ValidationError as e:
-            logger.exception("Validation error for input: %s", raw_request)
+            logger.exception(
+                "Validation error for input: %s",
+                raw_request,
+                extra=logging_context.with_status(400),
+            )
             error = SeldonMessage[self.response_type](
                 status=Status(
                     code=400, info=str(e), status=StatusFlag.FAILURE.value
@@ -129,10 +155,13 @@ class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
         raw_requests: List[Dict[str, Any]],
         tasks: List[InferenceTask],
         request_type: Type[I],
+        logging_context: LoggingContext,
     ) -> List[I]:
         requests = []
         for raw_request, task in zip(raw_requests, tasks):
-            request = self._parse_input(raw_request, task, request_type)
+            request = self._parse_input(
+                raw_request, task, request_type, logging_context
+            )
             if request is not None:
                 requests.append(request)
         return requests
@@ -197,29 +226,34 @@ class BasePredictor(
     def send_feedback(
         self, raw_feedback: Dict[str, Any], task: InferenceTask = None
     ) -> Optional[Dict[str, Any]]:
-        logger.debug("/send-feedback: %s", raw_feedback)
+        logging_context = self.get_logger_context(endpoint="send-feedback")
+        logger.debug("/send-feedback: %s", raw_feedback, extra=logging_context)
 
         if task is None:
             task = InferenceTask()
 
         with self.monitor.count_exceptions(
             endpoint="send_feedback"
-        ), ExceptionHandler([task], self.response_type):
+        ), ExceptionHandler([task], self.response_type, logging_context):
             feedback = self._parse_input(
                 raw_feedback,
                 task,
                 Feedback[self.request_type, self.response_type],
+                logging_context,
             )
 
             if feedback is not None:
-                logger.debug("Parsed feedback: %s", feedback)
+                logger.debug(
+                    "Parsed feedback: %s", feedback, extra=logging_context
+                )
 
                 if (
                     feedback.truth is not None
                     and feedback.truth.meta.puid is not None
                 ):
                     logger.debug(
-                        "Truth received and contains a puid. Looking for request and response in the cache..."
+                        "Truth received and contains a puid. Looking for request and response in the cache...",
+                        extra=logging_context,
                     )
                     cache_value = self.cache.get_cache_value(
                         feedback.truth.meta.puid
@@ -228,6 +262,7 @@ class BasePredictor(
                         "Cache value for puid %s: %s",
                         feedback.truth.meta.puid,
                         cache_value,
+                        extra=logging_context,
                     )
                     if cache_value is not None:
                         feedback.request = SeldonMessage(
@@ -239,6 +274,7 @@ class BasePredictor(
                         logger.debug(
                             "Feedback reconstructed from cache value: %s",
                             feedback,
+                            extra=logging_context,
                         )
 
                 routing = (
@@ -321,15 +357,19 @@ class BaseBatchPredictor(
         raw_requests: List[Dict[str, Any]],
         tasks: Optional[List[InferenceTask]] = None,
     ) -> List[Dict[str, Any]]:
-        logger.debug("/predict: %s", raw_requests)
+        logging_context = self.get_logger_context(endpoint="predict")
+        logger.debug("/predict: %s", raw_requests, extra=logging_context)
         if tasks is None:
             tasks = [InferenceTask()] * len(raw_requests)
 
         with self.monitor.count_exceptions(
             endpoint="predict"
-        ), ExceptionHandler(tasks, self.response_type):
+        ), ExceptionHandler(tasks, self.response_type, logging_context):
             seldon_message_requests = self._parse_inputs(
-                raw_requests, tasks, SeldonMessageRequest[self.request_type]
+                raw_requests,
+                tasks,
+                SeldonMessageRequest[self.request_type],
+                logging_context,
             )
 
             responses = self._process_with_cache(
@@ -356,27 +396,37 @@ class BaseSinglePredictor(
     def predict(
         self, raw_request: Dict[str, Any], task: InferenceTask = None
     ) -> Optional[Dict[str, Any]]:
-        logger.debug("/predict: %s", raw_request)
+        logging_context = self.get_logger_context(endpoint="predict")
+        logger.debug("/predict: %s", raw_request, extra=logging_context)
         if task is None:
             task = InferenceTask()
 
         with self.monitor.count_exceptions(
             endpoint="predict"
-        ), ExceptionHandler([task], self.response_type):
+        ), ExceptionHandler([task], self.response_type, logging_context):
             seldon_message_request = self._parse_input(
-                raw_request, task, SeldonMessageRequest[self.request_type]
+                raw_request,
+                task,
+                SeldonMessageRequest[self.request_type],
+                logging_context,
             )
 
             if seldon_message_request is not None:
                 request: RT = seldon_message_request.jsonData
 
-                logger.debug("Checking cache for %s", request)
+                logger.debug(
+                    "Checking cache for %s", request, extra=logging_context
+                )
                 response = self.cache.get_response(
                     seldon_message_request.meta.puid, request
                 )
 
                 if response is None:
-                    logger.debug("No cache found, predicting for %s", request)
+                    logger.debug(
+                        "No cache found, predicting for %s",
+                        request,
+                        extra=logging_context,
+                    )
                     response = self._predict(request)
                     self.cache.set_response(
                         request, response, seldon_message_request.meta
@@ -408,17 +458,21 @@ class BaseCombiner(BaseBentoService[RE], Generic[RE], metaclass=abc.ABCMeta):
         raw_seldon_message_list: List[Dict[str, Any]],
         task: InferenceTask = None,
     ) -> Optional[Dict[str, Any]]:
-        logger.debug("/aggregate: %s", raw_seldon_message_list)
+        logging_context = self.get_logger_context(endpoint="aggregate")
+        logger.debug(
+            "/aggregate: %s", raw_seldon_message_list, extra=logging_context
+        )
         if task is None:
             task = InferenceTask()
 
         with self.monitor.count_exceptions(
             endpoint="combine"
-        ), ExceptionHandler([task], self.response_type):
+        ), ExceptionHandler([task], self.response_type, logging_context):
             seldon_message_list = self._parse_input(
                 raw_seldon_message_list,
                 task,
                 List[SeldonMessageRequest[self.response_type]],
+                logging_context,
             )
 
             if seldon_message_list:
