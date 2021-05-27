@@ -192,9 +192,13 @@ class Cache(Generic[RT, RE]):
         return None
 
     def get_all(self) -> List[CacheValue]:
-        return [
-            CacheValue.parse_raw(value)
-            for value in self._redis.mget(
-                self._redis.keys(self._request_hash_to_key("*"))
-            )
-        ]
+        if self._redis:
+            return [
+                CacheValue.parse_raw(value)
+                for value in self._redis.mget(
+                    self._redis.keys(self._request_hash_to_key("*"))
+                )
+            ]
+        else:
+            logger.warning("Redis not available.")
+            return []
