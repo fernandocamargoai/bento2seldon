@@ -6,11 +6,10 @@ from hashlib import sha256
 
 from bento2seldon.seldon import DEPLOYMENT_ID, PRED_UNIT_ID, PRED_UNIT_KEY, Meta
 from bentoml import BentoService
-from pydantic import BaseModel
 from pydantic.generics import GenericModel
 
-RT = TypeVar("RT", bound=BaseModel)
-RE = TypeVar("RE", bound=BaseModel)
+RT = TypeVar("RT")
+RE = TypeVar("RE")
 
 
 logger = logging.getLogger(__name__)
@@ -108,7 +107,7 @@ class Cache(Generic[RT, RE]):
     ) -> None:
         if self._redis:
             puids, keys, values = zip(
-                *[
+                *(
                     (
                         self._wrap_puid(meta.puid),
                         self._request_to_key(request),
@@ -120,7 +119,7 @@ class Cache(Generic[RT, RE]):
                         requests, responses, metas
                     )
                     if self.should_cache(request, response, meta)
-                ]
+                )
             )
 
             logger.debug(

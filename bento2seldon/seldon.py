@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 import enum
 import os
@@ -56,3 +56,9 @@ class Feedback(GenericModel, Generic[R, S]):
     response: Optional[SeldonMessage[S]]
     reward: Optional[float]
     truth: Optional[SeldonMessage[S]]
+
+
+class RoutingSeldonMessage(BaseModel):
+    status: Optional[Status]
+    meta: Meta = Field(default_factory=Meta)
+    data: List[List[int]]

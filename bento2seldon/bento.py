@@ -24,6 +24,7 @@ from bento2seldon.seldon import (
     PRED_UNIT_ID,
     Feedback,
     Meta,
+    RoutingSeldonMessage,
     SeldonMessage,
     SeldonMessageRequest,
     Status,
@@ -57,11 +58,9 @@ class ExceptionHandler:
     def __init__(
         self,
         tasks: List[InferenceTask],
-        response_type: Type[RE],
         logging_context: LoggingContext,
     ):
         self._tasks = tasks
-        self._response_type = response_type
         self._logging_context = logging_context
 
     def __enter__(self):
@@ -72,7 +71,7 @@ class ExceptionHandler:
             logger.exception(
                 "Unexpected error", extra=self._logging_context.with_status(500)
             )
-            error = SeldonMessage[self._response_type](
+            error = SeldonMessage(
                 status=Status(
                     code=500, info=str(value), status=StatusFlag.FAILURE.value
                 )
@@ -90,14 +89,9 @@ class ExceptionHandler:
         return decorate(f, wrapped)
 
 
-class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
+class BaseBentoService(BentoService, metaclass=abc.ABCMeta):
     def versioneer(self):
         return datetime.datetime.utcnow().strftime("%Y%m%d%H%M%I")
-
-    @property
-    @abc.abstractmethod
-    def response_type(self) -> Type[RE]:
-        pass
 
     def get_logger_context(
         self, endpoint: str = "predict", batch_size: int = None
@@ -142,7 +136,7 @@ class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
                 raw_request,
                 extra=logging_context.with_status(400),
             )
-            error = SeldonMessage[self.response_type](
+            error = SeldonMessage(
                 status=Status(
                     code=400, info=str(e), status=StatusFlag.FAILURE.value
                 )
@@ -165,6 +159,15 @@ class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
             if request is not None:
                 requests.append(request)
         return requests
+
+
+class BaseBentoServiceWithResponse(
+    BaseBentoService, Generic[RE], metaclass=abc.ABCMeta
+):
+    @property
+    @abc.abstractmethod
+    def response_type(self) -> Type[RE]:
+        pass
 
     def _format_response(
         self, response: Optional[RE], meta: Optional[Meta]
@@ -192,7 +195,7 @@ class BaseBentoService(BentoService, Generic[RE], metaclass=abc.ABCMeta):
 
 
 class BasePredictor(
-    BaseBentoService[RE], Generic[RT, RE], metaclass=abc.ABCMeta
+    BaseBentoServiceWithResponse[RE], Generic[RT, RE], metaclass=abc.ABCMeta
 ):
     @property
     @abc.abstractmethod
@@ -234,7 +237,7 @@ class BasePredictor(
 
         with self.monitor.count_exceptions(
             endpoint="send_feedback"
-        ), ExceptionHandler([task], self.response_type, logging_context):
+        ), ExceptionHandler([task], logging_context):
             feedback = self._parse_input(
                 raw_feedback,
                 task,
@@ -364,7 +367,7 @@ class BaseBatchPredictor(
 
         with self.monitor.count_exceptions(
             endpoint="predict"
-        ), ExceptionHandler(tasks, self.response_type, logging_context):
+        ), ExceptionHandler(tasks, logging_context):
             seldon_message_requests = self._parse_inputs(
                 raw_requests,
                 tasks,
@@ -403,7 +406,7 @@ class BaseSinglePredictor(
 
         with self.monitor.count_exceptions(
             endpoint="predict"
-        ), ExceptionHandler([task], self.response_type, logging_context):
+        ), ExceptionHandler([task], logging_context):
             seldon_message_request = self._parse_input(
                 raw_request,
                 task,
@@ -438,7 +441,9 @@ class BaseSinglePredictor(
             return None
 
 
-class BaseCombiner(BaseBentoService[RE], Generic[RE], metaclass=abc.ABCMeta):
+class BaseCombiner(
+    BaseBentoServiceWithResponse[RE], Generic[RE], metaclass=abc.ABCMeta
+):
     @abc.abstractmethod
     def _combine(
         self, seldon_message_list: List[SeldonMessageRequest[RE]]
@@ -467,7 +472,7 @@ class BaseCombiner(BaseBentoService[RE], Generic[RE], metaclass=abc.ABCMeta):
 
         with self.monitor.count_exceptions(
             endpoint="combine"
-        ), ExceptionHandler([task], self.response_type, logging_context):
+        ), ExceptionHandler([task], logging_context):
             seldon_message_list = self._parse_input(
                 raw_seldon_message_list,
                 task,
@@ -488,4 +493,74 @@ class BaseCombiner(BaseBentoService[RE], Generic[RE], metaclass=abc.ABCMeta):
                         + [response.meta]
                     ),
                 )
+            return None
+
+
+class BaseRouter(BaseBentoService, Generic[RT], metaclass=abc.ABCMeta):
+    @property
+    @abc.abstractmethod
+    def request_type(self) -> Type[RT]:
+        pass
+
+    @property
+    def cache(self) -> Cache[RT, int]:
+        if not hasattr(self, "_cache"):
+            self._cache = Cache[RT, int](
+                self,
+                self.request_type,
+                int,
+                self.settings.redis_url,
+                datetime.timedelta(seconds=self.settings.cache_duration),
+            )
+        return self._cache
+
+    @abc.abstractmethod
+    def _route(self, seldon_message: SeldonMessageRequest[RT]) -> int:
+        pass
+
+    @api(input=SeldonJsonInput(), batch=False)
+    def route(
+        self, raw_request: Dict[str, Any], task: InferenceTask = None
+    ) -> Optional[Dict[str, Any]]:
+        logging_context = self.get_logger_context(endpoint="route")
+        logger.debug("/route: %s", raw_request, extra=logging_context)
+        if task is None:
+            task = InferenceTask()
+
+        with self.monitor.count_exceptions(endpoint="route"), ExceptionHandler(
+            [task], logging_context
+        ):
+            seldon_message_request = self._parse_input(
+                raw_request,
+                task,
+                SeldonMessageRequest[self.request_type],
+                logging_context,
+            )
+
+            if seldon_message_request is not None:
+                request: RT = seldon_message_request.jsonData
+
+                logger.debug(
+                    "Checking cache for %s", request, extra=logging_context
+                )
+                option = self.cache.get_response(
+                    seldon_message_request.meta.puid, request
+                )
+
+                if option is None:
+                    logger.debug(
+                        "No cache found, predicting for %s",
+                        request,
+                        extra=logging_context,
+                    )
+                    option = self._route(seldon_message_request)
+                    self.cache.set_response(
+                        request, option, seldon_message_request.meta
+                    )
+
+                return RoutingSeldonMessage(
+                    status=Status(),
+                    meta=seldon_message_request.meta,
+                    data=[[option]],
+                ).dict(exclude_none=True)
             return None
