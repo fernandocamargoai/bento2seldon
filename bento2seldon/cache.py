@@ -152,15 +152,22 @@ class Cache(Generic[RT, RE]):
 
             logger.debug("Caching %s=%s", puids, keys)
 
-            self._redis.mset(
-                {
-                    puid: key
-                    for puid, key, response in zip(puids, keys, responses)
-                    if response is not None
-                }
-            )
-            for puid in puids:
-                self._redis.expire(puid, self._expiration_delta)
+            puid_to_key_mapping = {
+                puid: key
+                for puid, key, response in zip(puids, keys, responses)
+                if response is not None
+            }
+
+            if puid_to_key_mapping:
+                self._redis.mset(
+                    {
+                        puid: key
+                        for puid, key, response in zip(puids, keys, responses)
+                        if response is not None
+                    }
+                )
+                for puid in puid_to_key_mapping.keys():
+                    self._redis.expire(puid, self._expiration_delta)
             return responses
         else:
             logger.warning("Redis not available.")
