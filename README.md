@@ -33,11 +33,19 @@ poetry add bento2seldon
 [`Makefile`](https://github.com/fernandocamargoai/bento2seldon/blob/master/Makefile) contains many functions for fast assembling and convenient work.
 
 <details>
-<summary>1. Download Poetry</summary>
+<summary>1. Download and remove Poetry</summary>
 <p>
 
+To download and install Poetry run:
+
 ```bash
-make download-poetry
+make poetry-download
+```
+
+To uninstall
+
+```bash
+make poetry-remove
 ```
 
 </p>
@@ -47,87 +55,79 @@ make download-poetry
 <summary>2. Install all dependencies and pre-commit hooks</summary>
 <p>
 
+Install requirements:
+
 ```bash
 make install
 ```
 
-If you do not want to install pre-commit hooks, run the command with the NO_PRE_COMMIT flag:
+Pre-commit hooks coulb be installed after `git init` via
 
 ```bash
-make install NO_PRE_COMMIT=1
+make pre-commit-install
 ```
 
 </p>
 </details>
 
 <details>
-<summary>3. Check the security of your code</summary>
+<summary>3. Codestyle</summary>
+<p>
+
+Automatic formatting uses `pyupgrade`, `isort` and `black`.
+
+```bash
+make codestyle
+
+# or use synonym
+make formatting
+```
+
+Codestyle checks only, without rewriting files:
+
+```bash
+make check-codestyle
+```
+
+> Note: `check-codestyle` uses `isort`, `black` and `darglint` library
+
+<details>
+<summary>4. Code security</summary>
 <p>
 
 ```bash
 make check-safety
 ```
 
-This command launches a `Poetry` and `Pip` integrity check as well as identifies security issues with `Safety` and `Bandit`. By default, the build will not crash if any of the items fail. But you can set `STRICT=1` for the entire build, or you can configure strictness for each item separately.
+This command launches `Poetry` integrity checks as well as identifies security issues with `Safety` and `Bandit`.
 
 ```bash
-make check-safety STRICT=1
+make check-safety
 ```
-
-or only for `safety`:
-
-```bash
-make check-safety SAFETY_STRICT=1
-```
-
-multiple
-
-```bash
-make check-safety PIP_STRICT=1 SAFETY_STRICT=1
-```
-
-> List of flags for `check-safety` (can be set to `1` or `0`): `STRICT`, `POETRY_STRICT`, `PIP_STRICT`, `SAFETY_STRICT`, `BANDIT_STRICT`.
 
 </p>
 </details>
 
-<details>
-<summary>4. Check the codestyle</summary>
-<p>
-
-The command is similar to `check-safety` but to check the code style, obviously. It uses `Black`, `Darglint`, `Isort`, and `Mypy` inside.
-
-```bash
-make check-style
-```
-
-It may also contain the `STRICT` flag.
-
-```bash
-make check-style STRICT=1
-```
-
-> List of flags for `check-style` (can be set to `1` or `0`): `STRICT`, `BLACK_STRICT`, `DARGLINT_STRICT`, `ISORT_STRICT`, `MYPY_STRICT`.
-
-</p>
 </details>
 
 <details>
-<summary>5. Run all the codestyle formaters</summary>
+<summary>5. Type checks</summary>
 <p>
 
-Codestyle uses `pre-commit` hooks, so ensure you've run `make install` before.
+Run `mypy` static type checker
 
 ```bash
-make codestyle
+make mypy
 ```
 
 </p>
 </details>
 
 <details>
-<summary>6. Run tests</summary>
+<summary>6. Tests</summary>
 <p>
+
+Run `pytest`
 
 ```bash
 make test
@@ -137,8 +137,10 @@ make test
 </details>
 
 <details>
-<summary>7. Run all the linters</summary>
+<summary>7. All linters</summary>
 <p>
+
+Of course there is a command to ~~rule~~ run all linters in one:
 
 ```bash
 make lint
@@ -147,10 +149,32 @@ make lint
 the same as:
 
 ```bash
-make test && make check-safety && make check-style
+make test && make check-codestyle && make mypy && make check-safety
 ```
 
-> List of flags for `lint` (can be set to `1` or `0`): `STRICT`, `POETRY_STRICT`, `PIP_STRICT`, `SAFETY_STRICT`, `BANDIT_STRICT`, `BLACK_STRICT`, `DARGLINT_STRICT`, `ISORT_STRICT`, `MYPY_STRICT`.
+</p>
+</details>
+
+<details>
+<summary>8. Cleanup</summary>
+<p>
+Delete pycache files
+
+```bash
+make pycache-remove
+```
+
+Remove package build
+
+```bash
+make build-remove
+```
+
+Or to remove pycache, build and docker image run:
+
+```bash
+make clean-all
+```
 
 </p>
 </details>
@@ -163,7 +187,7 @@ We follow [Semantic Versions](https://semver.org/) specification.
 
 We use [`Release Drafter`](https://github.com/marketplace/actions/release-drafter). As pull requests are merged, a draft release is kept up-to-date listing the changes, ready to publish when you’re ready. With the categories option, you can categorize pull requests in release notes using labels.
 
-For Pull Request this labels are configured, by default:
+### List of labels and corresponding titles
 
 |               **Label**               |  **Title in Releases**  |
 | :-----------------------------------: | :---------------------: |
@@ -197,6 +221,6 @@ This project is licensed under the terms of the `Apache Software License 2.0` li
 }
 ```
 
-## Credits
+## Credits [![🚀 Your next Python package needs a bleeding-edge project structure.](https://img.shields.io/badge/python--package--template-%F0%9F%9A%80-brightgreen)](https://github.com/TezRomacH/python-package-template)
 
-This project was generated with [`python-package-template`](https://github.com/TezRomacH/python-package-template).
+This project was generated with [`python-package-template`](https://github.com/TezRomacH/python-package-template)
