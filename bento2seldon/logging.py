@@ -1,10 +1,12 @@
+from typing import Any, Dict
+
 import uuid
 from copy import deepcopy
 
 from bentoml import BentoService
 
 
-class LoggingContext(dict):
+class LoggingContext(Dict[str, Any]):
     def __init__(self, bento_service: BentoService) -> None:
         super().__init__()
 

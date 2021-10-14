@@ -15,6 +15,13 @@ import abc
 import datetime
 import logging
 
+from bentoml import BentoService, api
+from bentoml.types import InferenceTask
+from decorator import decorate
+from pydantic import ValidationError
+from pydantic.main import BaseModel
+from pydantic.tools import parse_obj_as
+
 from bento2seldon.adapter import SeldonJsonInput
 from bento2seldon.cache import Cache
 from bento2seldon.logging import LoggingContext
@@ -30,12 +37,6 @@ from bento2seldon.seldon import (
     Status,
     StatusFlag,
 )
-from bentoml import BentoService, api
-from bentoml.types import InferenceTask
-from decorator import decorate
-from pydantic import ValidationError
-from pydantic.main import BaseModel
-from pydantic.tools import parse_obj_as
 
 RT = TypeVar("RT", bound=BaseModel)
 RE = TypeVar("RE", bound=BaseModel)
@@ -71,15 +72,13 @@ class ExceptionHandler:
             logger.exception(
                 "Unexpected error", extra=self._logging_context.with_status(500)
             )
-            error = SeldonMessage(
+            error = SeldonMessage[Any](
                 status=Status(
                     code=500, info=str(value), status=StatusFlag.FAILURE.value
                 )
             )
             for task in self._tasks:
-                task.discard(
-                    http_status=500, data=error.json(exclude_none=True)
-                )
+                task.discard(http_status=500, data=error.json(exclude_none=True))
 
     def __call__(self, f):
         def wrapped(func, *args, **kwargs):
@@ -94,7 +93,7 @@ class BaseBentoService(BentoService, metaclass=abc.ABCMeta):
         return datetime.datetime.utcnow().strftime("%Y%m%d%H%M%I")
 
     def get_logger_context(
-        self, endpoint: str = "predict", batch_size: int = None
+        self, endpoint: str = "predict", batch_size: Optional[int] = None
     ) -> LoggingContext:
         context = LoggingContext(self).with_endpoint(endpoint)
         if batch_size:
@@ -136,10 +135,8 @@ class BaseBentoService(BentoService, metaclass=abc.ABCMeta):
                 raw_request,
                 extra=logging_context.with_status(400),
             )
-            error = SeldonMessage(
-                status=Status(
-                    code=400, info=str(e), status=StatusFlag.FAILURE.value
-                )
+            error = SeldonMessage[Any](
+                status=Status(code=400, info=str(e), status=StatusFlag.FAILURE.value)
             )
             task.discard(http_status=400, data=error.json(exclude_none=True))
             return None
@@ -173,13 +170,13 @@ class BaseBentoServiceWithResponse(
         self, response: Optional[RE], meta: Optional[Meta]
     ) -> Dict[str, Any]:
         if meta:
-            seldon_message_response = SeldonMessage[self.response_type](
+            seldon_message_response = SeldonMessage[self.response_type](  # type: ignore[name-defined]
                 status=Status(),
                 meta=meta,
                 jsonData=response,
             )
         else:
-            seldon_message_response = SeldonMessage[self.response_type](
+            seldon_message_response = SeldonMessage[self.response_type](  # type: ignore[name-defined]
                 status=Status(),
                 jsonData=response,
             )
@@ -235,32 +232,25 @@ class BasePredictor(
         if task is None:
             task = InferenceTask()
 
-        with self.monitor.count_exceptions(
-            endpoint="send_feedback"
-        ), ExceptionHandler([task], logging_context):
+        with self.monitor.count_exceptions(endpoint="send_feedback"), ExceptionHandler(
+            [task], logging_context
+        ):
             feedback = self._parse_input(
                 raw_feedback,
                 task,
-                Feedback[self.request_type, self.response_type],
+                Feedback[self.request_type, self.response_type],  # type: ignore[name-defined]
                 logging_context,
             )
 
             if feedback is not None:
-                logger.debug(
-                    "Parsed feedback: %s", feedback, extra=logging_context
-                )
+                logger.debug("Parsed feedback: %s", feedback, extra=logging_context)
 
-                if (
-                    feedback.truth is not None
-                    and feedback.truth.meta.puid is not None
-                ):
+                if feedback.truth is not None and feedback.truth.meta.puid is not None:
                     logger.debug(
                         "Truth received and contains a puid. Looking for request and response in the cache...",
                         extra=logging_context,
                     )
-                    cache_value = self.cache.get_cache_value(
-                        feedback.truth.meta.puid
-                    )
+                    cache_value = self.cache.get_cache_value(feedback.truth.meta.puid)
                     logger.debug(
                         "Cache value for puid %s: %s",
                         feedback.truth.meta.puid,
@@ -298,9 +288,7 @@ class BasePredictor(
             return None
 
 
-class BaseBatchPredictor(
-    BasePredictor[RT, RE], Generic[RT, RE], metaclass=abc.ABCMeta
-):
+class BaseBatchPredictor(BasePredictor[RT, RE], Generic[RT, RE], metaclass=abc.ABCMeta):
     def _process_with_cache(
         self,
         seldon_message_requests: List[SeldonMessageRequest[RT]],
@@ -365,19 +353,17 @@ class BaseBatchPredictor(
         if tasks is None:
             tasks = [InferenceTask()] * len(raw_requests)
 
-        with self.monitor.count_exceptions(
-            endpoint="predict"
-        ), ExceptionHandler(tasks, logging_context):
+        with self.monitor.count_exceptions(endpoint="predict"), ExceptionHandler(
+            tasks, logging_context
+        ):
             seldon_message_requests = self._parse_inputs(
                 raw_requests,
                 tasks,
-                SeldonMessageRequest[self.request_type],
+                SeldonMessageRequest[self.request_type],  # type: ignore[name-defined]
                 logging_context,
             )
 
-            responses = self._process_with_cache(
-                seldon_message_requests, self._predict
-            )
+            responses = self._process_with_cache(seldon_message_requests, self._predict)
 
             return self._format_responses(
                 responses,
@@ -404,22 +390,20 @@ class BaseSinglePredictor(
         if task is None:
             task = InferenceTask()
 
-        with self.monitor.count_exceptions(
-            endpoint="predict"
-        ), ExceptionHandler([task], logging_context):
+        with self.monitor.count_exceptions(endpoint="predict"), ExceptionHandler(
+            [task], logging_context
+        ):
             seldon_message_request = self._parse_input(
                 raw_request,
                 task,
-                SeldonMessageRequest[self.request_type],
+                SeldonMessageRequest[self.request_type],  # type: ignore[name-defined]
                 logging_context,
             )
 
             if seldon_message_request is not None:
                 request: RT = seldon_message_request.jsonData
 
-                logger.debug(
-                    "Checking cache for %s", request, extra=logging_context
-                )
+                logger.debug("Checking cache for %s", request, extra=logging_context)
                 response = self.cache.get_response(
                     seldon_message_request.meta.puid, request
                 )
@@ -435,9 +419,7 @@ class BaseSinglePredictor(
                         request, response, seldon_message_request.meta
                     )
 
-                return self._format_response(
-                    response, seldon_message_request.meta
-                )
+                return self._format_response(response, seldon_message_request.meta)
             return None
 
 
@@ -464,19 +446,17 @@ class BaseCombiner(
         task: InferenceTask = None,
     ) -> Optional[Dict[str, Any]]:
         logging_context = self.get_logger_context(endpoint="aggregate")
-        logger.debug(
-            "/aggregate: %s", raw_seldon_message_list, extra=logging_context
-        )
+        logger.debug("/aggregate: %s", raw_seldon_message_list, extra=logging_context)
         if task is None:
             task = InferenceTask()
 
-        with self.monitor.count_exceptions(
-            endpoint="combine"
-        ), ExceptionHandler([task], logging_context):
+        with self.monitor.count_exceptions(endpoint="combine"), ExceptionHandler(
+            [task], logging_context
+        ):
             seldon_message_list = self._parse_input(
                 raw_seldon_message_list,
                 task,
-                List[SeldonMessageRequest[self.response_type]],
+                List[SeldonMessageRequest[self.response_type]],  # type: ignore[name-defined]
                 logging_context,
             )
 
@@ -486,10 +466,7 @@ class BaseCombiner(
                 return self._format_response(
                     response.jsonData,
                     self._merge_meta(
-                        [
-                            seldon_message.meta
-                            for seldon_message in seldon_message_list
-                        ]
+                        [seldon_message.meta for seldon_message in seldon_message_list]
                         + [response.meta]
                     ),
                 )
@@ -533,16 +510,14 @@ class BaseRouter(BaseBentoService, Generic[RT], metaclass=abc.ABCMeta):
             seldon_message_request = self._parse_input(
                 raw_request,
                 task,
-                SeldonMessageRequest[self.request_type],
+                SeldonMessageRequest[self.request_type],  # type: ignore[name-defined]
                 logging_context,
             )
 
             if seldon_message_request is not None:
                 request: RT = seldon_message_request.jsonData
 
-                logger.debug(
-                    "Checking cache for %s", request, extra=logging_context
-                )
+                logger.debug("Checking cache for %s", request, extra=logging_context)
                 option = self.cache.get_response(
                     seldon_message_request.meta.puid, request
                 )

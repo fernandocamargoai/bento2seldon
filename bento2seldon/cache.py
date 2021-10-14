@@ -1,15 +1,17 @@
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, List, Optional, Type, TypeVar, Union
 
 import datetime
 import logging
 from hashlib import sha256
 
-from bento2seldon.seldon import DEPLOYMENT_ID, PRED_UNIT_ID, PRED_UNIT_KEY, Meta
 from bentoml import BentoService
+from pydantic import BaseModel
 from pydantic.generics import GenericModel
 
-RT = TypeVar("RT")
-RE = TypeVar("RE")
+from bento2seldon.seldon import DEPLOYMENT_ID, PRED_UNIT_ID, PRED_UNIT_KEY, Meta
+
+RT = TypeVar("RT", bound=BaseModel)
+RE = TypeVar("RE", bound=Union[BaseModel, int])
 
 
 logger = logging.getLogger(__name__)
@@ -59,9 +61,7 @@ class Cache(Generic[RT, RE]):
         return f"{self._name}:{DEPLOYMENT_ID}:{self._version}:puid:{puid}"
 
     def should_cache(self, request: RT, response: RE, meta: Meta) -> bool:
-        logger.debug(
-            "Verifying if should cache: %s, %s, %s", request, response, meta
-        )
+        logger.debug("Verifying if should cache: %s, %s, %s", request, response, meta)
         return meta.tags.get(PRED_UNIT_KEY) == PRED_UNIT_ID
 
     def set_response(self, request: RT, response: RE, meta: Meta) -> None:
@@ -85,7 +85,7 @@ class Cache(Generic[RT, RE]):
             key = self._request_to_key(request)
             value = self._redis.get(key)
             response: Optional[RE] = (
-                CacheValue[self._request_type, self._response_type]
+                CacheValue[self._request_type, self._response_type]  # type: ignore[name-defined]
                 .parse_raw(value)
                 .response
                 if value
@@ -115,33 +115,25 @@ class Cache(Generic[RT, RE]):
                             request=request, response=response, meta=meta
                         ).json(),
                     )
-                    for request, response, meta in zip(
-                        requests, responses, metas
-                    )
+                    for request, response, meta in zip(requests, responses, metas)
                     if self.should_cache(request, response, meta)
                 )
             )
 
-            logger.debug(
-                "Caching multiple values: %s=%s=%s", puids, keys, values
-            )
+            logger.debug("Caching multiple values: %s=%s=%s", puids, keys, values)
 
-            self._redis.mset(
-                {**dict(zip(puids, keys)), **dict(zip(keys, values))}
-            )
+            self._redis.mset({**dict(zip(puids, keys)), **dict(zip(keys, values))})
 
             for k in keys + puids:
                 self._redis.expire(k, self._expiration_delta)
         else:
             logger.warning("Redis not available.")
 
-    def get_responses(
-        self, puids: List[str], requests: List[RT]
-    ) -> List[Optional[RE]]:
+    def get_responses(self, puids: List[str], requests: List[RT]) -> List[Optional[RE]]:
         if self._redis:
             keys = [self._request_to_key(request) for request in requests]
             responses = [
-                CacheValue[self._request_type, self._response_type]
+                CacheValue[self._request_type, self._response_type]  # type: ignore[name-defined]
                 .parse_raw(value)
                 .response
                 if value
@@ -188,7 +180,7 @@ class Cache(Generic[RT, RE]):
                 value = self._redis.get(key)
                 if value:
                     cache_value = CacheValue[
-                        self._request_type, self._response_type
+                        self._request_type, self._response_type  # type: ignore[name-defined]
                     ].parse_raw(value)
                     logger.debug("Found cache value for %s: %s", puid, value)
                     return cache_value
@@ -197,13 +189,14 @@ class Cache(Generic[RT, RE]):
             logger.warning("Redis not available.")
         return None
 
-    def get_all(self) -> List[CacheValue]:
+    def get_all(self) -> List[CacheValue[RT, RE]]:
         if self._redis:
             return [
                 CacheValue.parse_raw(value)
                 for value in self._redis.mget(
                     self._redis.keys(self._request_hash_to_key("*"))
                 )
+                if value is not None
             ]
         else:
             logger.warning("Redis not available.")

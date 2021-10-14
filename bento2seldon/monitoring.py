@@ -1,10 +1,11 @@
 from typing import List, Optional, Type
 
-from bento2seldon.seldon import DEPLOYMENT_ID
 from bentoml import BentoService, config
 from prometheus_client import Counter, Histogram
 from prometheus_client.context_managers import ExceptionCounter, Timer
 from prometheus_client.metrics import MetricWrapperBase
+
+from bento2seldon.seldon import DEPLOYMENT_ID
 
 PREDICT_ENDPOINT = "predict"
 FEEDBACK_ENDPOINT = "send-feedback"
@@ -58,9 +59,7 @@ class Monitor:
             labelnames=labelnames,
         )
 
-    def count_exceptions(
-        self, endpoint: str = PREDICT_ENDPOINT
-    ) -> ExceptionCounter:
+    def count_exceptions(self, endpoint: str = PREDICT_ENDPOINT) -> ExceptionCounter:
         return self._exception_counter.labels(
             DEPLOYMENT_ID,
             self.version,
@@ -80,9 +79,5 @@ class Monitor:
 
         return Timer(observe)
 
-    def observe_reward(
-        self, value: float, endpoint: str = FEEDBACK_ENDPOINT
-    ) -> None:
-        self._reward.labels(DEPLOYMENT_ID, self.version, endpoint).observe(
-            value
-        )
+    def observe_reward(self, value: float, endpoint: str = FEEDBACK_ENDPOINT) -> None:
+        self._reward.labels(DEPLOYMENT_ID, self.version, endpoint).observe(value)

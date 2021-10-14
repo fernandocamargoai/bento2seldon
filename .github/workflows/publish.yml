@@ -1,0 +1,37 @@
+name: publish
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2.2.2
+      with:
+        python-version: "3.7"
+
+    - name: Install poetry
+      run: make poetry-download
+
+    - name: Set up cache
+      uses: actions/cache@v2.1.6
+      with:
+        path: .venv
+        key: venv-3.7-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('poetry.lock') }}
+    - name: Install dependencies
+      run: |
+        poetry config virtualenvs.in-project true
+        poetry install
+
+    - name: Publish
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        poetry config pypi-token.pypi $PYPI_TOKEN
+        poetry publish --build
