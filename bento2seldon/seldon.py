@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 import enum
 import os
@@ -58,7 +58,17 @@ class Feedback(GenericModel, Generic[R, S]):
     truth: Optional[SeldonMessage[S]]
 
 
+class Tensor(BaseModel):
+    shape: List[int]
+    values: List[Union[int, float]]
+
+
+class DefaultData(BaseModel):
+    names: Optional[List[str]]
+    tensor: Optional[Tensor]
+
+
 class RoutingSeldonMessage(BaseModel):
     status: Optional[Status]
     meta: Meta = Field(default_factory=Meta)
-    data: List[List[int]]
+    data: DefaultData
