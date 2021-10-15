@@ -29,6 +29,7 @@ from bento2seldon.model import Settings
 from bento2seldon.monitoring import Monitor
 from bento2seldon.seldon import (
     PRED_UNIT_ID,
+    DefaultData,
     Feedback,
     Meta,
     RoutingSeldonMessage,
@@ -36,6 +37,7 @@ from bento2seldon.seldon import (
     SeldonMessageRequest,
     Status,
     StatusFlag,
+    Tensor,
 )
 
 RT = TypeVar("RT", bound=BaseModel)
@@ -536,6 +538,6 @@ class BaseRouter(BaseBentoService, Generic[RT], metaclass=abc.ABCMeta):
                 return RoutingSeldonMessage(
                     status=Status(),
                     meta=seldon_message_request.meta,
-                    data=[[option]],
+                    data=DefaultData(tensor=Tensor(shape=[1, 1], values=[option])),
                 ).dict(exclude_none=True)
             return None
