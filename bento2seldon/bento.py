@@ -223,10 +223,10 @@ class BasePredictor(
     ) -> None:
         if reward is not None:
             extra = {}
-            if request is not None and hasattr(self, "_extra_monitor_request_info"):
+            if request is not None and hasattr(self, "extra_monitor_request_info"):
                 extra = {
                     label: getattr(request.jsonData, label)
-                    for label in self._extra_monitor_request_info
+                    for label in self.extra_monitor_request_info
                 }
 
             self._monitor.observe_reward(reward, extra=extra)
