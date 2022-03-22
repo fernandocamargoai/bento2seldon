@@ -202,6 +202,10 @@ class BasePredictor(
         pass
 
     @property
+    def extra_monitoring_request_fields(self) -> List[str]:
+        return []
+
+    @property
     def cache(self) -> Cache[RT, RE]:
         if not hasattr(self, "_cache"):
             self._cache = Cache[RT, RE](
@@ -223,10 +227,10 @@ class BasePredictor(
     ) -> None:
         if reward is not None:
             extra = {}
-            if request is not None and hasattr(self, "extra_monitor_request_info"):
+            if request is not None:
                 extra = {
                     label: getattr(request.jsonData, label)
-                    for label in self.extra_monitor_request_info
+                    for label in self.extra_monitoring_request_fields
                 }
 
             self._monitor.observe_reward(reward, extra=extra)
