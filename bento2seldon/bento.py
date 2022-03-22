@@ -222,7 +222,14 @@ class BasePredictor(
         routing: Optional[int],
     ) -> None:
         if reward is not None:
-            self._monitor.observe_reward(reward)
+            extra = {}
+            if request is not None and hasattr(self, "_extra_monitor_request_info"):
+                extra = {
+                    label: getattr(request.jsonData, label)
+                    for label in self._extra_monitor_request_info
+                }
+
+            self._monitor.observe_reward(reward, extra=extra)
 
     @api(route="send-feedback", input=SeldonJsonInput(), batch=False)
     def send_feedback(
