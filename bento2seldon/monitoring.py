@@ -1,12 +1,14 @@
+from typing import Any, Dict, List, Optional, Type, cast
+
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Type
 
 from bentoml import BentoService, config
 from prometheus_client import Counter, Histogram
-from prometheus_client.context_managers import ExceptionCounter, Timer
+from prometheus_client.context_managers import ExceptionCounter
 from prometheus_client.metrics import MetricWrapperBase
 
 from bento2seldon.seldon import DEPLOYMENT_ID
+from bento2seldon.utils import Timer
 
 PREDICT_ENDPOINT = "predict"
 FEEDBACK_ENDPOINT = "send-feedback"
@@ -34,49 +36,67 @@ class Monitor:
         return metric_class(
             name=f"{self.service_name}_{suffix}",
             namespace=self.namespace,
-            documentation=documentation,
+            documentation=documentation or "",
             labelnames=labelnames,
         )
 
     def count_exceptions(
-        self, endpoint: str = PREDICT_ENDPOINT, extra: Dict[str, Any] = {}
+        self, endpoint: str = PREDICT_ENDPOINT, extra: Optional[Dict[str, Any]] = None
     ) -> ExceptionCounter:
+        if extra is None:
+            extra = {}
+
         if not hasattr(self, "_exception_counter"):
             self._exception_counter = self._create_metric(
-                Counter, "exception_total", "Total number of exceptions", extra.keys()
+                Counter,
+                "exception_total",
+                "Total number of exceptions",
+                list(extra.keys()),
             )
 
-        return self._exception_counter.labels(
-            DEPLOYMENT_ID, self.version, endpoint, *extra.values()
+        return cast(
+            Counter,
+            self._exception_counter.labels(
+                DEPLOYMENT_ID, self.version, endpoint, *extra.values()
+            ),
         ).count_exceptions()
 
     def time_model_execution(
         self,
         parallel_executions: int,
         endpoint: str = PREDICT_ENDPOINT,
-        extra: Dict[str, Any] = {},
+        extra: Optional[Dict[str, Any]] = None,
     ) -> Timer:
+        if extra is None:
+            extra = {}
+
         if not hasattr(self, "_model_execution_duration"):
             self._model_execution_duration = self._create_metric(
                 Histogram,
                 "model_execution_duration_seconds",
                 "Model execution duration in seconds",
-                extra.keys(),
+                list(extra.keys()),
             )
         if not hasattr(self, "_model_execution_per_request_duration"):
             self._model_execution_per_request_duration = self._create_metric(
                 Histogram,
                 "model_execution_per_request_duration_seconds",
                 "Model execution per request duration in seconds",
-                extra.keys(),
+                list(extra.keys()),
             )
 
         def observe(duration: float) -> None:
-            self._model_execution_duration.labels(
-                DEPLOYMENT_ID, self.version, endpoint, *extra.values()
+            cast(
+                Histogram,
+                self._model_execution_duration.labels(
+                    DEPLOYMENT_ID, self.version, endpoint, *list(extra.values())  # type: ignore[union-attr]
+                ),
             ).observe(duration)
-            self._model_execution_per_request_duration.labels(
-                DEPLOYMENT_ID, self.version, endpoint, *extra.values()
+            cast(
+                Histogram,
+                self._model_execution_per_request_duration.labels(
+                    DEPLOYMENT_ID, self.version, endpoint, *list(extra.values())  # type: ignore[union-attr]
+                ),
             ).observe(duration / parallel_executions)
 
         return Timer(observe)
@@ -85,13 +105,17 @@ class Monitor:
         self,
         value: float,
         endpoint: str = FEEDBACK_ENDPOINT,
-        extra: Dict[str, Any] = {},
+        extra: Optional[Dict[str, Any]] = None,
     ) -> None:
+        if extra is None:
+            extra = {}
+
         if not hasattr(self, "_reward"):
             self._reward = self._create_metric(
-                Histogram, "reward", "Reward provided by feedback", extra.keys()
+                Histogram, "reward", "Reward provided by feedback", list(extra.keys())
             )
 
-        self._reward.labels(
-            DEPLOYMENT_ID, self.version, endpoint, *extra.values()
+        cast(
+            Histogram,
+            self._reward.labels(DEPLOYMENT_ID, self.version, endpoint, *extra.values()),
         ).observe(value)

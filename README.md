@@ -202,6 +202,14 @@ You can update it in [`release-drafter.yml`](https://github.com/fernandocamargoa
 
 GitHub creates the `bug`, `enhancement`, and `documentation` labels for you. Dependabot creates the `dependencies` label. Create the remaining labels on the Issues tab of your GitHub repository, when you need them.
 
+## Building and releasing your package
+Building a new version of the application contains steps:
+
+- Bump the version of your package `poetry version <version>`. You can pass the new version explicitly, or a rule such as `major`, `minor`, or `patch`. For more details, refer to the [Semantic Versions](https://semver.org/) standard.
+- Make a commit to GitHub.
+- Create a `GitHub release`.
+- And... publish slightly_smiling_face `poetry publish --build`
+
 ## 🛡 License
 
 [![License](https://img.shields.io/github/license/fernandocamargoai/bento2seldon)](https://github.com/fernandocamargoai/bento2seldon/blob/master/LICENSE)

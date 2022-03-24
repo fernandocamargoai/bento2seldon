@@ -192,7 +192,7 @@ class Cache(Generic[RT, RE]):
     def get_all(self) -> List[CacheValue[RT, RE]]:
         if self._redis:
             return [
-                CacheValue.parse_raw(value)
+                CacheValue.parse_raw(str(value))
                 for value in self._redis.mget(
                     self._redis.keys(self._request_hash_to_key("*"))
                 )

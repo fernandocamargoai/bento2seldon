@@ -59,7 +59,9 @@ logger = logging.getLogger(__name__)
 
 class ExceptionHandler:
     def __init__(
-        self, tasks: List[InferenceTask], logging_context: LoggingContext,
+        self,
+        tasks: List[InferenceTask],
+        logging_context: LoggingContext,
     ):
         self._tasks = tasks
         self._logging_context = logging_context
@@ -101,6 +103,7 @@ class ExtraMonitoringHandler:
                 label: getattr(request.jsonData, label)
                 for label in self.extra_monitoring_request_fields
             }
+        return {}
 
 
 class BaseBentoService(BentoService, metaclass=abc.ABCMeta):
@@ -186,11 +189,14 @@ class BaseBentoServiceWithResponse(
     ) -> Dict[str, Any]:
         if meta:
             seldon_message_response = SeldonMessage[self.response_type](  # type: ignore[name-defined]
-                status=Status(), meta=meta, jsonData=response,
+                status=Status(),
+                meta=meta,
+                jsonData=response,
             )
         else:
             seldon_message_response = SeldonMessage[self.response_type](  # type: ignore[name-defined]
-                status=Status(), jsonData=response,
+                status=Status(),
+                jsonData=response,
             )
         return seldon_message_response.dict(exclude_none=True)
 
@@ -355,7 +361,10 @@ class BaseBatchPredictor(BasePredictor[RT, RE], Generic[RT, RE], metaclass=abc.A
         pass
 
     @api(
-        input=SeldonJsonInput(), batch=True, mb_max_latency=1000, mb_max_batch_size=100,
+        input=SeldonJsonInput(),
+        batch=True,
+        mb_max_latency=1000,
+        mb_max_batch_size=100,
     )
     def predict(
         self,
@@ -455,7 +464,9 @@ class BaseCombiner(
 
     @api(input=SeldonJsonInput(), batch=False)
     def aggregate(
-        self, raw_seldon_message_list: List[Dict[str, Any]], task: InferenceTask = None,
+        self,
+        raw_seldon_message_list: List[Dict[str, Any]],
+        task: InferenceTask = None,
     ) -> Optional[Dict[str, Any]]:
         logging_context = self.get_logger_context(endpoint="aggregate")
         logger.debug("/aggregate: %s", raw_seldon_message_list, extra=logging_context)
