@@ -21,6 +21,17 @@ yarl = ">=1.0,<2.0"
 speedups = ["aiodns", "brotli", "cchardet"]
 
 [[package]]
+name = "aiohttp-cors"
+version = "0.7.0"
+description = "CORS support for aiohttp"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+aiohttp = ">=1.1"
+
+[[package]]
 name = "aiosignal"
 version = "1.2.0"
 description = "aiosignal: a list of registered asynchronous callbacks"
@@ -124,7 +135,7 @@ yaml = ["pyyaml"]
 
 [[package]]
 name = "bentoml"
-version = "0.12.1"
+version = "0.13.1"
 description = "A framework for machine learning model serving"
 category = "main"
 optional = false
@@ -132,6 +143,7 @@ python-versions = ">=3.6.1"
 
 [package.dependencies]
 aiohttp = "*"
+aiohttp-cors = "0.7.0"
 alembic = "*"
 boto3 = "*"
 cerberus = "*"
@@ -140,7 +152,6 @@ chardet = "*"
 click = ">=7.0"
 configparser = "*"
 deepmerge = "*"
-dependency-injector = ">=4.0,<5.0"
 docker = "*"
 flask = "*"
 grpcio = "*"
@@ -156,16 +167,18 @@ python-json-logger = "*"
 requests = "*"
 "ruamel.yaml" = ">=0.15.0"
 schema = "*"
+simple-di = "*"
 sqlalchemy = ">=1.3.0,<1.4.0"
 sqlalchemy-utils = "<0.36.8"
 tabulate = "*"
 urllib3 = "<=1.25.11"
 
 [package.extras]
-dev = ["aiohttp", "alembic", "urllib3 (<=1.25.11)", "boto3", "cerberus", "certifi", "click (>=7.0)", "configparser", "deepmerge", "dependency-injector (>=4.0,<5.0)", "docker", "flask", "grpcio", "gunicorn", "humanfriendly", "numpy", "packaging", "prometheus-client", "protobuf (>=3.8.0)", "psutil", "python-dateutil (>=2.7.3,<3.0.0)", "python-json-logger", "requests", "ruamel.yaml (>=0.15.0)", "schema", "sqlalchemy-utils (<0.36.8)", "sqlalchemy (>=1.3.0,<1.4.0)", "tabulate", "chardet", "flake8 (>=3.8.2)", "gitpython (>=2.0.2)", "grpcio-tools (>=1.34.0,<1.35.0)", "grpcio-reflection (>=1.34.0,<1.35.0)", "pylint (>=2.5.2)", "setuptools", "tox-conda (>=0.2.0)", "tox (>=3.12.1)", "twine", "idna (<=2.8)", "ecdsa (==0.14)", "black (==19.10b0)", "codecov", "coverage (>=4.4)", "imageio (>=2.5.0)", "mock (>=2.0.0)", "moto (==1.3.14)", "pandas", "pytest-cov (>=2.7.1)", "pytest (>=5.4.0)", "pytest-asyncio", "scikit-learn", "recommonmark", "sphinx", "sphinx-click", "sphinx-rtd-theme", "sphinxcontrib-fulltoc", "sphinxcontrib-spelling", "pyenchant", "contextvars", "dataclasses"]
-doc_builder = ["recommonmark", "sphinx", "sphinx-click", "sphinx-rtd-theme", "sphinxcontrib-fulltoc", "sphinxcontrib-spelling", "pyenchant"]
+dev = ["aiohttp", "aiohttp-cors (==0.7.0)", "alembic", "urllib3 (<=1.25.11)", "boto3", "cerberus", "certifi", "click (>=7.0)", "configparser", "deepmerge", "docker", "flask", "grpcio", "gunicorn", "humanfriendly", "numpy", "packaging", "prometheus-client", "protobuf (>=3.8.0)", "psutil", "python-dateutil (>=2.7.3,<3.0.0)", "python-json-logger", "requests", "ruamel.yaml (>=0.15.0)", "schema", "sqlalchemy-utils (<0.36.8)", "sqlalchemy (>=1.3.0,<1.4.0)", "tabulate", "chardet", "simple-di", "flake8 (>=3.8.2)", "gitpython (>=2.0.2)", "grpcio-tools (>=1.34.0,<1.35.0)", "grpcio-reflection (>=1.34.0,<1.35.0)", "pylint (>=2.5.2)", "setuptools", "tox-conda (>=0.2.0)", "tox (>=3.12.1)", "twine", "idna (<=2.8)", "ecdsa (==0.14)", "black (==19.10b0)", "codecov", "coverage (>=4.4)", "imageio (>=2.5.0)", "mock (>=2.0.0)", "moto (==1.3.14)", "pandas", "pylint (>=2.9.3)", "pytest-cov (>=2.7.1)", "pytest (>=5.4.0)", "pytest-asyncio", "parameterized", "scikit-learn", "recommonmark", "sphinx (<=3.5.4)", "sphinx-click", "sphinx-rtd-theme", "sphinxcontrib-fulltoc", "sphinxcontrib-spelling", "sphinx-copybutton", "pyenchant", "mypy-protobuf", "types-click", "types-protobuf (>=0.1.14)", "grpc-stubs", "contextvars", "dataclasses"]
+doc_builder = ["recommonmark", "sphinx (<=3.5.4)", "sphinx-click", "sphinx-rtd-theme", "sphinxcontrib-fulltoc", "sphinxcontrib-spelling", "sphinx-copybutton", "pyenchant"]
 model_server = ["opentracing", "py-zipkin", "jaeger-client"]
-test = ["idna (<=2.8)", "ecdsa (==0.14)", "black (==19.10b0)", "codecov", "coverage (>=4.4)", "flake8 (>=3.8.2)", "imageio (>=2.5.0)", "mock (>=2.0.0)", "moto (==1.3.14)", "pandas", "pylint (>=2.5.2)", "pytest-cov (>=2.7.1)", "pytest (>=5.4.0)", "pytest-asyncio", "scikit-learn"]
+test = ["idna (<=2.8)", "ecdsa (==0.14)", "black (==19.10b0)", "codecov", "coverage (>=4.4)", "flake8 (>=3.8.2)", "imageio (>=2.5.0)", "mock (>=2.0.0)", "moto (==1.3.14)", "pandas", "pylint (>=2.9.3)", "pytest-cov (>=2.7.1)", "pytest (>=5.4.0)", "pytest-asyncio", "parameterized", "scikit-learn"]
+types_stub = ["mypy-protobuf", "types-click", "types-protobuf (>=0.1.14)", "grpc-stubs"]
 yatai_service = ["grpcio (>=1.34.0,<1.35.0)", "google-cloud-storage", "azure-cli", "aws-sam-cli (==0.33.1)", "psycopg2", "psycopg2-binary"]
 
 [[package]]
@@ -333,23 +346,6 @@ description = "a toolset to deeply merge python dictionaries."
 category = "main"
 optional = false
 python-versions = "*"
-
-[[package]]
-name = "dependency-injector"
-version = "4.38.0"
-description = "Dependency injection framework for Python"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = ">=1.7.0,<=1.16.0"
-
-[package.extras]
-aiohttp = ["aiohttp"]
-flask = ["flask"]
-pydantic = ["pydantic"]
-yaml = ["pyyaml"]
 
 [[package]]
 name = "distlib"
@@ -1032,6 +1028,17 @@ python-versions = "*"
 contextlib2 = ">=0.5.5"
 
 [[package]]
+name = "simple-di"
+version = "0.1.5"
+description = "simple dependency injection library"
+category = "main"
+optional = false
+python-versions = ">=3.6.1"
+
+[package.extras]
+test = ["pytest", "mypy"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1257,7 +1264,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "9767686eac36fc2f1df6c127974fdccdb65a251189521185e24239c6145cb541"
+content-hash = "b8c221ddae57273baf03f3c98f32c7109f9a9a050be97ed895316b4b8d3df5f3"
 
 [metadata.files]
 aiohttp = [
@@ -1334,6 +1341,10 @@ aiohttp = [
     {file = "aiohttp-3.8.1-cp39-cp39-win_amd64.whl", hash = "sha256:1c182cb873bc91b411e184dab7a2b664d4fea2743df0e4d57402f7f3fa644bac"},
     {file = "aiohttp-3.8.1.tar.gz", hash = "sha256:fc5471e1a54de15ef71c1bc6ebe80d4dc681ea600e68bfd1cbce40427f0b7578"},
 ]
+aiohttp-cors = [
+    {file = "aiohttp-cors-0.7.0.tar.gz", hash = "sha256:4d39c6d7100fd9764ed1caf8cebf0eb01bf5e3f24e2e073fda6234bc48b19f5d"},
+    {file = "aiohttp_cors-0.7.0-py3-none-any.whl", hash = "sha256:0451ba59fdf6909d0e2cd21e4c0a43752bc0703d33fc78ae94d9d9321710193e"},
+]
 aiosignal = [
     {file = "aiosignal-1.2.0-py3-none-any.whl", hash = "sha256:26e62109036cd181df6e6ad646f91f0dcfd05fe16d0cb924138ff2ab75d64e3a"},
     {file = "aiosignal-1.2.0.tar.gz", hash = "sha256:78ed67db6c7b7ced4f98e495e572106d5c432a93e1ddd1bf475e1dc05f5b7df2"},
@@ -1367,8 +1378,8 @@ bandit = [
     {file = "bandit-1.7.4.tar.gz", hash = "sha256:2d63a8c573417bae338962d4b9b06fbc6080f74ecd955a092849e1e65c717bd2"},
 ]
 bentoml = [
-    {file = "BentoML-0.12.1-py3-none-any.whl", hash = "sha256:d35ac4aebf1aa3d5d26d801fa81199447d84854db857fea7275a483b6300f8df"},
-    {file = "BentoML-0.12.1.tar.gz", hash = "sha256:8c9e7e5727cc364ec56fb0252fa5ec2bb1751c4f2dad0fd776f1f3968d4b5231"},
+    {file = "BentoML-0.13.1-py3-none-any.whl", hash = "sha256:3a7f35d8a8c8da9f470164e147f38e25cda81083dff38a0c6a3be654b55aec17"},
+    {file = "BentoML-0.13.1.tar.gz", hash = "sha256:2f53bd2b659e305a97f5cb46fe97f92f65416959e29199fdc55b7637bf7f247b"},
 ]
 black = [
     {file = "black-21.12b0-py3-none-any.whl", hash = "sha256:a615e69ae185e08fdd73e4715e260e2479c861b5740057fde6e8b4e3b7dd589f"},
@@ -1428,44 +1439,6 @@ decorator = [
 deepmerge = [
     {file = "deepmerge-1.0.1-py3-none-any.whl", hash = "sha256:f851fff957697cb8f4580b465acf5c2d35841695306ff0abb9cb9c273ad76112"},
     {file = "deepmerge-1.0.1.tar.gz", hash = "sha256:4b44779ed3d2fb791bb181fc2683423496fea428abb7af37feb23286de7f0a1a"},
-]
-dependency-injector = [
-    {file = "dependency-injector-4.38.0.tar.gz", hash = "sha256:bab4c323d822d3fc9936e8eb3c2f5553d75e9efdadac11d5b293a016e31a1477"},
-    {file = "dependency_injector-4.38.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:025eb5f97021663715bff8e01feb83d5b2f66fc17ece1042a194f1aae88c0d85"},
-    {file = "dependency_injector-4.38.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f3c61334b196ab767eae43af207764349287d5eb0283d8ed1ab24608121aea35"},
-    {file = "dependency_injector-4.38.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:9bf4bfc52015e81c4f17647b7bbbe4e4549f041b3c6635b44a9ecede7594932c"},
-    {file = "dependency_injector-4.38.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:7aeba5882b06baf78978f33228e4c44133dada9173e330da68fbccca98520848"},
-    {file = "dependency_injector-4.38.0-cp310-cp310-win32.whl", hash = "sha256:445dbf5324eee215a465d7f3b1965b05e199c31caa09e63abf0f02d982791306"},
-    {file = "dependency_injector-4.38.0-cp310-cp310-win_amd64.whl", hash = "sha256:880edbcb5d810faa0623112e2e652a7bec73d20ce0708d9db998a0a40b62cbb9"},
-    {file = "dependency_injector-4.38.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:cd6f1c130462e7461a43f82fdc0d2ba25b5ef594db823dbd0e57f3d1b7c44f86"},
-    {file = "dependency_injector-4.38.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0be75905f7513886699d3ff5ed9aca233175c03808fc888da2a53b83af0a5d65"},
-    {file = "dependency_injector-4.38.0-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:8d7f1a7d27de6295ce8b7ca69d1177817bf36c7cbaf73819e4bab04f87c5e962"},
-    {file = "dependency_injector-4.38.0-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:e9c1ff387d7b7d814e9d29a531c6804acc67b1cca578c09abd3590fa7ec6bf06"},
-    {file = "dependency_injector-4.38.0-cp36-cp36m-win32.whl", hash = "sha256:7770efcbc6915dabbb31ea0bdeee1105dabf76e1c8e31a454cb1983dcf19ecf1"},
-    {file = "dependency_injector-4.38.0-cp36-cp36m-win_amd64.whl", hash = "sha256:9e89a9c88317ad237abfb374c410e1466476ffefe6c44f3caeca3dce747a635c"},
-    {file = "dependency_injector-4.38.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:cb75cd29c132bfaf03a11a6ac4f459dddb7a6526669543de57d2bb5fddf78def"},
-    {file = "dependency_injector-4.38.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d116c56e7fc3b59b3afa6078163b5f6ff4680ebf27800dd4032de7a04f7ef777"},
-    {file = "dependency_injector-4.38.0-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:9df330ef9e24b6f94e6764d23180350c2fb99785257233ee4738e066b876fa7f"},
-    {file = "dependency_injector-4.38.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:7a46639038313f64eca2dc858ac4cd9e0aca5ea21bb005f5d754aadd6446ba4b"},
-    {file = "dependency_injector-4.38.0-cp37-cp37m-win32.whl", hash = "sha256:d0d983b269b657744058b5858afc3c59443db53afe9c3e709e316daa9f9b9454"},
-    {file = "dependency_injector-4.38.0-cp37-cp37m-win_amd64.whl", hash = "sha256:1446df58169c166a5a2d5644ba9eeb3b7f2f679f260596f78d012c58ff140d92"},
-    {file = "dependency_injector-4.38.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:307396f2d9d2f532fe92079a56d40af5fc60dacb1d766e3f9cd04c3802a1c251"},
-    {file = "dependency_injector-4.38.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8dd96b6c454ab86648f57f37b895c1c976b1a82b76f835011f607ee8a78ebc0e"},
-    {file = "dependency_injector-4.38.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:fb44b17e649cabcfd1f370ecfd492ac7a93216776d91954b31598eecb36cdb13"},
-    {file = "dependency_injector-4.38.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:ab8ebe728dd9b3be23c40ca5a5dbe195050d9ad35d42d7e9fdaea816f7134584"},
-    {file = "dependency_injector-4.38.0-cp38-cp38-win32.whl", hash = "sha256:1da3bad1452212bab76e87fbf7a71d3675190a1a909f345aaf8bae2fa97b878f"},
-    {file = "dependency_injector-4.38.0-cp38-cp38-win_amd64.whl", hash = "sha256:2918776e88de88be0e2be036261180ca0605c8f64ead43d835ce852f16a9efd2"},
-    {file = "dependency_injector-4.38.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:493be62561218624380d4eca9243a46753444f677217db6292a7b715cf429172"},
-    {file = "dependency_injector-4.38.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0a70511db88f84ac4228b27e37e12ea0e04a9c2a32cae3602b9af9a27c0db992"},
-    {file = "dependency_injector-4.38.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:5e3e1cfe41a5ada0ff71889563441f538caff0399e41d3ee377b60fa50a858bf"},
-    {file = "dependency_injector-4.38.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:116cc679a2c6d40c6a4f968aefe68535e596e88e96315dbd0d0ad2ff76654e3d"},
-    {file = "dependency_injector-4.38.0-cp39-cp39-win32.whl", hash = "sha256:f703c2c161de067ba9893b56743d24fb4c9dbff92eb504bc082c2d2cfeab4c01"},
-    {file = "dependency_injector-4.38.0-cp39-cp39-win_amd64.whl", hash = "sha256:6821a864d6405dc0d5f794ac1b10da4a8c7e8731c6a0651a9682a0b76f5a5b3e"},
-    {file = "dependency_injector-4.38.0-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:6c9e8dc91aa5831bd3a58fec1b94ed8c52f78f601f5ab91135b5ad44325beef7"},
-    {file = "dependency_injector-4.38.0-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2b4eedadef0c84295b70803a79a3ce5a10a59dddd8f306876f6fa6bfc4de8e00"},
-    {file = "dependency_injector-4.38.0-pp37-pypy37_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:2e88b5d09c80e20d6b3d985cc360f39a81e748667c20f6bc7eee9f4b832176ed"},
-    {file = "dependency_injector-4.38.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:b1fcd71ff46e097f4e47917ccdf6aa388b6a6372557f7d9f83db1e879e95f8bb"},
-    {file = "dependency_injector-4.38.0-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:9633d6366282e83a3f21543c5c78299787948333d9fe6649b020cfac93d8b7ca"},
 ]
 distlib = [
     {file = "distlib-0.3.4-py2.py3-none-any.whl", hash = "sha256:6564fe0a8f51e734df6333d08b8b94d4ea8ee6b99b5ed50613f731fd4089f34b"},
@@ -2126,6 +2099,10 @@ safety = [
 schema = [
     {file = "schema-0.7.5-py2.py3-none-any.whl", hash = "sha256:f3ffdeeada09ec34bf40d7d79996d9f7175db93b7a5065de0faa7f41083c1e6c"},
     {file = "schema-0.7.5.tar.gz", hash = "sha256:f06717112c61895cabc4707752b88716e8420a8819d71404501e114f91043197"},
+]
+simple-di = [
+    {file = "simple_di-0.1.5-py3-none-any.whl", hash = "sha256:e3fb6242f18f389a3c2d571dd51ade47c74cdbc4550590894664ad59bfb2a345"},
+    {file = "simple_di-0.1.5.tar.gz", hash = "sha256:192b999dee4cd4fb11a5d861165caad02d8f0617c0f806fc5b09f905f1a03ca0"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
