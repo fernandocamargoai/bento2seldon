@@ -763,7 +763,7 @@ virtualenv = ">=20.0.8"
 
 [[package]]
 name = "prometheus-client"
-version = "0.13.1"
+version = "0.14.0"
 description = "Python client for the Prometheus monitoring system."
 category = "main"
 optional = false
@@ -1884,8 +1884,8 @@ pre-commit = [
     {file = "pre_commit-2.17.0.tar.gz", hash = "sha256:c1a8040ff15ad3d648c70cc3e55b93e4d2d5b687320955505587fd79bbaed06a"},
 ]
 prometheus-client = [
-    {file = "prometheus_client-0.13.1-py3-none-any.whl", hash = "sha256:357a447fd2359b0a1d2e9b311a0c5778c330cfbe186d880ad5a6b39884652316"},
-    {file = "prometheus_client-0.13.1.tar.gz", hash = "sha256:ada41b891b79fca5638bd5cfe149efa86512eaa55987893becd2c6d8d0a5dfc5"},
+    {file = "prometheus_client-0.14.0-py3-none-any.whl", hash = "sha256:f4aba3fdd1735852049f537c1f0ab177159b7ab76f271ecc4d2f45aa2a1d01f2"},
+    {file = "prometheus_client-0.14.0.tar.gz", hash = "sha256:8f7a922dd5455ad524b6ba212ce8eb2b4b05e073f4ec7218287f88b1cac34750"},
 ]
 protobuf = [
     {file = "protobuf-3.19.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f51d5a9f137f7a2cec2d326a74b6e3fc79d635d69ffe1b036d39fc7d75430d37"},
