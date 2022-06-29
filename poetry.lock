@@ -1008,17 +1008,18 @@ crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
 name = "safety"
-version = "1.10.3"
-description = "Checks installed dependencies for known vulnerabilities."
+version = "2.0.0"
+description = "Checks installed dependencies for known vulnerabilities and licenses."
 category = "dev"
 optional = false
-python-versions = ">=3.5"
+python-versions = "*"
 
 [package.dependencies]
-Click = ">=6.0"
+Click = ">=8.0.2"
 dparse = ">=0.5.1"
-packaging = "*"
+packaging = ">=21.0"
 requests = "*"
+"ruamel.yaml" = ">=0.17.21"
 
 [[package]]
 name = "schema"
@@ -1257,7 +1258,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "9767686eac36fc2f1df6c127974fdccdb65a251189521185e24239c6145cb541"
+content-hash = "d12837e33a836633bf773c4e47b2396ad79862876b9cf093ac6b47c1abc7ef55"
 
 [metadata.files]
 aiohttp = [
@@ -2120,8 +2121,8 @@ s3transfer = [
     {file = "s3transfer-0.5.2.tar.gz", hash = "sha256:95c58c194ce657a5f4fb0b9e60a84968c808888aed628cd98ab8771fe1db98ed"},
 ]
 safety = [
-    {file = "safety-1.10.3-py2.py3-none-any.whl", hash = "sha256:5f802ad5df5614f9622d8d71fedec2757099705c2356f862847c58c6dfe13e84"},
-    {file = "safety-1.10.3.tar.gz", hash = "sha256:30e394d02a20ac49b7f65292d19d38fa927a8f9582cdfd3ad1adbbc66c641ad5"},
+    {file = "safety-2.0.0-py3-none-any.whl", hash = "sha256:77cebdd128ce47b941e68a1b3bbc29fbbd2b9e98d11f179c5def64c1d05da295"},
+    {file = "safety-2.0.0.tar.gz", hash = "sha256:d739d00a9e4203cfaba34540c822a73ca1d327159ed7776b3dce09391f81c35d"},
 ]
 schema = [
     {file = "schema-0.7.5-py2.py3-none-any.whl", hash = "sha256:f3ffdeeada09ec34bf40d7d79996d9f7175db93b7a5065de0faa7f41083c1e6c"},
