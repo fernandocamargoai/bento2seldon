@@ -44,7 +44,7 @@ pyreadline3==3.4.1; sys_platform == "win32" and python_version >= "3.8" and pyth
 pyreadline==2.1; sys_platform == "win32" and python_version < "3.8" and python_full_version >= "3.6.1"
 python-dateutil==2.8.2; python_version >= "3.6" and python_full_version >= "3.6.1"
 python-json-logger==2.0.2; python_version >= "3.5" and python_full_version >= "3.6.1"
-pywin32==227; python_version >= "3.6" and python_full_version >= "3.6.1" and sys_platform == "win32"
+pywin32==305; python_version >= "3.6" and python_full_version >= "3.6.1" and sys_platform == "win32"
 requests==2.27.1; python_version >= "3.6" and python_full_version >= "3.6.1"
 ruamel.yaml.clib==0.2.6; platform_python_implementation == "CPython" and python_version < "3.11" and python_version >= "3.5" and python_full_version >= "3.6.1"
 ruamel.yaml==0.17.21; python_version >= "3" and python_full_version >= "3.6.1"
