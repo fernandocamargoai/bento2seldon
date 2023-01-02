@@ -34,7 +34,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-importlib_metadata = {version = "^4.5.0", python = "<3.8"}
+importlib_metadata = {version = ">=4.5,<7.0", python = "<3.8"}
 pydantic = "^1.8"
 BentoML = "^0.12"
 decorator = "^5.0"
