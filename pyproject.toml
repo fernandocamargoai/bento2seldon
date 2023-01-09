@@ -38,7 +38,7 @@ importlib_metadata = {version = "^4.5.0", python = "<3.8"}
 pydantic = "^1.8"
 BentoML = "^0.12"
 decorator = "^5.0"
-redis = { version = "^3.0", optional = true }
+redis = { version = ">=3,<5", optional = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
